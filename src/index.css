@@ -5,40 +5,35 @@
 @tailwind utilities;
 
 
-/* ✅ FIX 1 — prevent left right drag */
-html, body {
-  max-width: 100%;
+/* ✅ FIX — allow vertical scroll but stop horizontal drag */
+
+html {
   overflow-x: hidden;
-  overscroll-behavior: none;
-  touch-action: manipulation;
 }
 
-
-/* ✅ FIX 2 — prevent bounce scroll iOS / PWA */
 body {
-  position: relative;
-  min-height: 100vh;
-  -webkit-overflow-scrolling: touch;
-}
-
-
-/* ✅ FIX 3 — prevent header drag */
-header, nav {
+  overflow-x: hidden;
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: none;
   touch-action: pan-y;
+  min-height: 100vh;
 }
 
 
-/* ✅ FIX 4 — safe viewport for notch / PWA */
-#root, .app, .layout {
-  min-height: 100dvh;
+/* prevent horizontal move on layout */
+#root,
+.app,
+.layout {
   max-width: 100vw;
   overflow-x: hidden;
 }
 
 
-/* ========================= */
-/* ORIGINAL CODE BELOW */
-/* ========================= */
+/* prevent header drag but allow scroll */
+header,
+nav {
+  touch-action: pan-y;
+}
 
 
 @layer base {
