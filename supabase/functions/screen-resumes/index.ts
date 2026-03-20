@@ -23,7 +23,9 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const resumeList = resumes
-      .map((r: { name: string; content: string }, i: number) => `--- Resume ${i + 1}: ${r.name} ---\n${r.content}`)
+      .map((r: { id: string; name: string; content: string }, i: number) =>
+        `--- Resume ${i + 1}: ${r.name} (id:${r.id}) ---\n${r.content}`
+      )
       .join("\n\n");
 
     const systemPrompt = `You are an expert HR recruiter and resume screening specialist. You analyze resumes against job descriptions with precision and fairness. You must return structured JSON output via the provided tool.`;
@@ -37,6 +39,7 @@ RESUMES:
 ${resumeList}
 
 For each candidate, provide:
+- resume_id (the id from the resume header e.g. id:abc123)
 - match_score (0-100, be realistic and varied)
 - strengths (exactly 2-3 key strengths relevant to the JD)
 - gaps (exactly 2-3 key gaps or missing skills)
@@ -71,6 +74,7 @@ Rank candidates by score descending.`;
                     items: {
                       type: "object",
                       properties: {
+                        resume_id: { type: "string", description: "The resume id from the header" },
                         name: { type: "string", description: "Candidate name from resume" },
                         match_score: { type: "number", description: "Score 0-100" },
                         strengths: {
@@ -88,7 +92,7 @@ Rank candidates by score descending.`;
                           enum: ["Strong Fit", "Moderate Fit", "Not Fit"],
                         },
                       },
-                      required: ["name", "match_score", "strengths", "gaps", "recommendation"],
+                      required: ["resume_id", "name", "match_score", "strengths", "gaps", "recommendation"],
                       additionalProperties: false,
                     },
                   },
@@ -126,8 +130,6 @@ Rank candidates by score descending.`;
     if (!toolCall) throw new Error("No tool call in response");
 
     const result = JSON.parse(toolCall.function.arguments);
-
-    // Sort by score descending
     result.candidates.sort((a: any, b: any) => b.match_score - a.match_score);
 
     return new Response(JSON.stringify(result), {
