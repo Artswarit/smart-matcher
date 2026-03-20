@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { History, Clock, Users, Trophy, ChevronRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface HistoryEntry {
   id: string;
@@ -41,12 +42,21 @@ export function ScreeningHistory({ onLoad }: Props) {
 
   const clearHistory = async () => {
     if (!confirm("Clear all screening history? This cannot be undone.")) return;
+
+    const ids = entries.map((e) => e.id);
+    if (ids.length === 0) return;
+
     const { error } = await supabase
       .from("screening_results")
       .delete()
-      .neq("id", "00000000-0000-0000-0000-000000000000");
+      .in("id", ids);
+
     if (!error) {
       setEntries([]);
+      toast.success("History cleared");
+    } else {
+      console.error("Clear history error:", error);
+      toast.error("Failed to clear history. Check Supabase RLS policies.");
     }
   };
 
