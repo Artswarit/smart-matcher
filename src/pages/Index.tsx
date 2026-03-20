@@ -90,6 +90,23 @@ export default function Index() {
     }, 200);
   };
 
+  const handleResumeChange = (updated: ResumeEntry[]) => {
+    if (updated.length < resumes.length) {
+      const removedResume = resumes.find(
+        (r) => !updated.find((u) => u.id === r.id)
+      );
+      if (removedResume && removedResume.name.trim()) {
+        setCandidates((prev) =>
+          prev.filter(
+            (c) => c.name.trim().toLowerCase() !== removedResume.name.trim().toLowerCase()
+          )
+        );
+        toast.info(`Removed ${removedResume.name} from results`);
+      }
+    }
+    setResumes(updated);
+  };
+
   const hasContent =
     jobDescription.trim().length > 0 ||
     resumes.some((r) => r.name.trim() || r.content.trim());
@@ -153,15 +170,7 @@ export default function Index() {
         <section className="space-y-4 sm:space-y-6 animate-fade-up">
           <div className="flex flex-col gap-4 sm:gap-6">
             <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
-            <ResumeInputs
-  resumes={resumes}
-  onChange={(updated) => {
-    setResumes(updated);
-    if (updated.length < resumes.length) {
-      setCandidates([]);
-    }
-  }}
-/>
+            <ResumeInputs resumes={resumes} onChange={handleResumeChange} />
           </div>
 
           <div className="flex justify-center pt-2">
