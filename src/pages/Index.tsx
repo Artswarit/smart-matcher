@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { JobDescriptionInput } from "@/components/JobDescriptionInput";
 import { ResumeInputs, type ResumeEntry } from "@/components/ResumeInputs";
 import { ResultsTable } from "@/components/ResultsTable";
+import { ScreeningHistory } from "@/components/ScreeningHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ScanSearch, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
@@ -22,6 +23,8 @@ export default function Index() {
   ]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const canSubmit =
     jobDescription.trim().length > 20 &&
@@ -56,12 +59,37 @@ export default function Index() {
 
       setCandidates(data.candidates);
       toast.success(`Screened ${data.candidates.length} candidate${data.candidates.length !== 1 ? "s" : ""}`);
+
+      // Save to history
+      const topScore = Math.max(...data.candidates.map((c: Candidate) => c.match_score));
+      await supabase.from("screening_results").insert({
+        job_description: jobDescription,
+        candidates: data.candidates,
+        resume_count: data.candidates.length,
+        top_score: topScore,
+      });
+      setHistoryKey((k) => k + 1);
+
+      // Scroll to results
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Failed to screen resumes");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLoadHistory = (entry: any) => {
+    setJobDescription(entry.job_description);
+    setCandidates(entry.candidates);
+    setResumes([{ id: crypto.randomUUID(), name: "", content: "" }]);
+    toast.success("Loaded previous screening results");
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
   };
 
   const hasContent =
@@ -118,6 +146,11 @@ export default function Index() {
           </div>
         )}
 
+        {/* Screening history */}
+        {candidates.length === 0 && (
+          <ScreeningHistory key={historyKey} onLoad={handleLoadHistory} />
+        )}
+
         {/* Input section */}
         <section className="space-y-6 animate-fade-up">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -149,7 +182,7 @@ export default function Index() {
 
         {/* Results */}
         {candidates.length > 0 && (
-          <section className="pt-2">
+          <section className="pt-2" ref={resultsRef}>
             <ResultsTable candidates={candidates} />
           </section>
         )}
