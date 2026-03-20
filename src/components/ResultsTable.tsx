@@ -15,8 +15,7 @@ interface Candidate {
 
 interface Props {
   candidates: Candidate[];
-  onRemove: (resumeId: string) => void;
-}
+  <ResultsTable candidates={candidates} />
 
 function ScoreRing({ score, rank }: { score: number; rank: number }) {
   const circumference = 2 * Math.PI * 28;
