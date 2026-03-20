@@ -96,19 +96,20 @@ export default function Index() {
   };
 
   const handleResumeChange = (updated: ResumeEntry[]) => {
-    if (updated.length < resumes.length) {
-      const removedResume = resumes.find(
-        (r) => !updated.find((u) => u.id === r.id)
-      );
-      if (removedResume) {
-        setCandidates((prev) =>
-          prev.filter((c) => c.resume_id !== removedResume.id)
-        );
-        toast.info(`Removed ${removedResume.name || "candidate"} from results`);
-      }
+  if (updated.length < resumes.length) {
+    const removedIndex = resumes.findIndex(
+      (r) => !updated.find((u) => u.id === r.id)
+    );
+    if (removedIndex !== -1) {
+      setCandidates((prev) => {
+        const newCandidates = [...prev];
+        newCandidates.splice(removedIndex, 1);
+        return newCandidates;
+      });
     }
-    setResumes(updated);
-  };
+  }
+  setResumes(updated);
+};
 
   const hasContent =
     jobDescription.trim().length > 0 ||
