@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      screening_results: {
+        Row: {
+          candidates: Json
+          created_at: string
+          id: string
+          job_description: string
+          resume_count: number
+          top_score: number | null
+        }
+        Insert: {
+          candidates: Json
+          created_at?: string
+          id?: string
+          job_description: string
+          resume_count?: number
+          top_score?: number | null
+        }
+        Update: {
+          candidates?: Json
+          created_at?: string
+          id?: string
+          job_description?: string
+          resume_count?: number
+          top_score?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
