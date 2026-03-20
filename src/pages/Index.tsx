@@ -5,7 +5,7 @@ import { ResumeInputs, type ResumeEntry } from "@/components/ResumeInputs";
 import { ResultsTable } from "@/components/ResultsTable";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, ScanSearch, RotateCcw, FileText, Briefcase } from "lucide-react";
+import { Loader2, ScanSearch, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
 
 interface Candidate {
   name: string;
@@ -31,7 +31,6 @@ export default function Index() {
     setJobDescription("");
     setResumes([{ id: crypto.randomUUID(), name: "", content: "" }]);
     setCandidates([]);
-    toast.info("Cleared all inputs");
   };
 
   const handleScreen = async () => {
@@ -56,7 +55,7 @@ export default function Index() {
       if (data?.error) throw new Error(data.error);
 
       setCandidates(data.candidates);
-      toast.success(`Screened ${data.candidates.length} candidates`);
+      toast.success(`Screened ${data.candidates.length} candidate${data.candidates.length !== 1 ? "s" : ""}`);
     } catch (e: any) {
       console.error(e);
       toast.error(e.message || "Failed to screen resumes");
@@ -65,86 +64,92 @@ export default function Index() {
     }
   };
 
-  const hasContent = jobDescription.trim().length > 0 || resumes.some((r) => r.name.trim() || r.content.trim());
+  const hasContent =
+    jobDescription.trim().length > 0 ||
+    resumes.some((r) => r.name.trim() || r.content.trim());
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container max-w-4xl py-4 flex items-center justify-between">
+      {/* Header */}
+      <header className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-20">
+        <div className="container max-w-5xl py-3.5 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-[0_2px_8px_hsl(215_72%_44%/0.25)]">
               <ScanSearch className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight text-foreground">
+              <h1 className="text-base font-bold leading-tight text-foreground tracking-tight">
                 Resume Screener
               </h1>
-              <p className="text-xs text-muted-foreground">
-                AI-powered candidate screening
+              <p className="text-[11px] text-muted-foreground font-medium tracking-wide uppercase">
+                AI-Powered Screening
               </p>
             </div>
           </div>
-          {hasContent && (
+          {(hasContent || candidates.length > 0) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleReset}
-              className="gap-1.5 text-muted-foreground hover:text-destructive active:scale-[0.97] transition-transform"
+              className="gap-1.5 text-xs text-muted-foreground hover:text-destructive active:scale-[0.96] transition-all duration-150"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Reset
+              Start Over
             </Button>
           )}
         </div>
       </header>
 
-      <main className="container max-w-4xl py-8 space-y-8">
-        {/* Empty state guidance */}
+      <main className="container max-w-5xl px-6 py-10 space-y-10">
+        {/* Hero / empty state */}
         {!hasContent && candidates.length === 0 && (
-          <div className="text-center py-8 space-y-4 animate-fade-in">
-            <div className="flex justify-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <Briefcase className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
-                <FileText className="h-6 w-6 text-success" />
-              </div>
+          <div className="text-center pt-4 pb-2 animate-fade-in">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/8 px-3.5 py-1.5 mb-5">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary tracking-wide">Powered by AI</span>
             </div>
-            <div>
-              <p className="text-base font-medium text-foreground">Screen candidates in seconds</p>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                Paste a job description, add resumes (or upload PDFs), and get AI-powered scoring with strengths, gaps, and fit recommendations.
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+              Screen candidates in seconds
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto mt-3 leading-relaxed">
+              Paste a job description and add resumes below. Our AI analyzes each
+              candidate for strengths, gaps, and overall fit — ranked by match score.
+            </p>
           </div>
         )}
 
+        {/* Input section */}
         <section className="space-y-6 animate-fade-up">
-          <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
-          <ResumeInputs resumes={resumes} onChange={setResumes} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
+            <ResumeInputs resumes={resumes} onChange={setResumes} />
+          </div>
 
-          <Button
-            onClick={handleScreen}
-            disabled={!canSubmit || loading}
-            size="lg"
-            className="w-full active:scale-[0.98] transition-transform"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Analyzing resumes…
-              </>
-            ) : (
-              <>
-                <ScanSearch className="h-4 w-4" />
-                Screen Candidates
-              </>
-            )}
-          </Button>
+          <div className="flex justify-center pt-2">
+            <Button
+              onClick={handleScreen}
+              disabled={!canSubmit || loading}
+              size="lg"
+              className="px-10 gap-2.5 text-sm font-semibold shadow-[0_2px_12px_hsl(215_72%_44%/0.2)] hover:shadow-[0_4px_20px_hsl(215_72%_44%/0.3)] active:scale-[0.97] transition-all duration-200"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Analyzing…
+                </>
+              ) : (
+                <>
+                  Screen Candidates
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
         </section>
 
+        {/* Results */}
         {candidates.length > 0 && (
-          <section>
+          <section className="pt-2">
             <ResultsTable candidates={candidates} />
           </section>
         )}
