@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Loader2, ScanSearch, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
 
 interface Candidate {
-  resume_id: string;
+  resume_id?: string;
   name: string;
   match_score: number;
   strengths: string[];
@@ -96,20 +96,20 @@ export default function Index() {
   };
 
   const handleResumeChange = (updated: ResumeEntry[]) => {
-  if (updated.length < resumes.length) {
-    const removedIndex = resumes.findIndex(
-      (r) => !updated.find((u) => u.id === r.id)
-    );
-    if (removedIndex !== -1) {
-      setCandidates((prev) => {
-        const newCandidates = [...prev];
-        newCandidates.splice(removedIndex, 1);
-        return newCandidates;
-      });
+    if (updated.length < resumes.length) {
+      const removedIndex = resumes.findIndex(
+        (r) => !updated.find((u) => u.id === r.id)
+      );
+      if (removedIndex !== -1) {
+        setCandidates((prev) => {
+          const next = [...prev];
+          next.splice(removedIndex, 1);
+          return next;
+        });
+      }
     }
-  }
-  setResumes(updated);
-};
+    setResumes(updated);
+  };
 
   const hasContent =
     jobDescription.trim().length > 0 ||
@@ -197,12 +197,7 @@ export default function Index() {
 
         {candidates.length > 0 && (
           <section className="pt-2" ref={resultsRef}>
-            <ResultsTable
-              candidates={candidates}
-              onRemove={(resumeId) =>
-                setCandidates((prev) => prev.filter((c) => c.resume_id !== resumeId))
-              }
-            />
+            <ResultsTable candidates={candidates} />
           </section>
         )}
       </main>
