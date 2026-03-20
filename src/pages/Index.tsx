@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, ScanSearch, RotateCcw, ArrowRight, Sparkles } from "lucide-react";
 
 interface Candidate {
+  resume_id: string;
   name: string;
   match_score: number;
   strengths: string[];
@@ -50,7 +51,11 @@ export default function Index() {
       const { data, error } = await supabase.functions.invoke("screen-resumes", {
         body: {
           jobDescription,
-          resumes: validResumes.map((r) => ({ name: r.name, content: r.content })),
+          resumes: validResumes.map((r) => ({
+            id: r.id,
+            name: r.name,
+            content: r.content,
+          })),
         },
       });
 
@@ -95,13 +100,11 @@ export default function Index() {
       const removedResume = resumes.find(
         (r) => !updated.find((u) => u.id === r.id)
       );
-      if (removedResume && removedResume.name.trim()) {
+      if (removedResume) {
         setCandidates((prev) =>
-          prev.filter(
-            (c) => c.name.trim().toLowerCase() !== removedResume.name.trim().toLowerCase()
-          )
+          prev.filter((c) => c.resume_id !== removedResume.id)
         );
-        toast.info(`Removed ${removedResume.name} from results`);
+        toast.info(`Removed ${removedResume.name || "candidate"} from results`);
       }
     }
     setResumes(updated);
@@ -113,7 +116,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-20">
         <div className="container max-w-5xl py-3.5 px-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -144,7 +146,6 @@ export default function Index() {
       </header>
 
       <main className="container max-w-5xl px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-10">
-        {/* Hero / empty state */}
         {!hasContent && candidates.length === 0 && (
           <div className="text-center pt-2 pb-2 animate-fade-in">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/8 px-3.5 py-1.5 mb-4">
@@ -161,12 +162,10 @@ export default function Index() {
           </div>
         )}
 
-        {/* Screening history */}
         {candidates.length === 0 && (
           <ScreeningHistory key={historyKey} onLoad={handleLoadHistory} />
         )}
 
-        {/* Input section */}
         <section className="space-y-4 sm:space-y-6 animate-fade-up">
           <div className="flex flex-col gap-4 sm:gap-6">
             <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
@@ -195,10 +194,14 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Results */}
         {candidates.length > 0 && (
           <section className="pt-2" ref={resultsRef}>
-            <ResultsTable candidates={candidates} />
+            <ResultsTable
+              candidates={candidates}
+              onRemove={(resumeId) =>
+                setCandidates((prev) => prev.filter((c) => c.resume_id !== resumeId))
+              }
+            />
           </section>
         )}
       </main>
