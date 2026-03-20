@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, TrendingDown, Trophy, ArrowUpDown, Filter } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, Trophy, ArrowUpDown, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
 interface Candidate {
+  resume_id: string;
   name: string;
   match_score: number;
   strengths: string[];
@@ -14,6 +15,7 @@ interface Candidate {
 
 interface Props {
   candidates: Candidate[];
+  onRemove: (resumeId: string) => void;
 }
 
 function ScoreRing({ score, rank }: { score: number; rank: number }) {
@@ -83,13 +85,13 @@ type FilterType = "All" | "Strong Fit" | "Moderate Fit" | "Not Fit";
 type SortType = "score-desc" | "score-asc";
 
 const FILTER_OPTIONS: { label: string; value: FilterType; class: string }[] = [
-  { label: "All",           value: "All",           class: "border-border text-muted-foreground hover:border-primary hover:text-primary" },
-  { label: "Strong Fit",    value: "Strong Fit",    class: "border-success/40 text-success hover:bg-success/10" },
-  { label: "Moderate Fit",  value: "Moderate Fit",  class: "border-warning/40 text-warning hover:bg-warning/10" },
-  { label: "Not Fit",       value: "Not Fit",       class: "border-destructive/40 text-destructive hover:bg-destructive/10" },
+  { label: "All",          value: "All",          class: "border-border text-muted-foreground hover:border-primary hover:text-primary" },
+  { label: "Strong Fit",   value: "Strong Fit",   class: "border-success/40 text-success hover:bg-success/10" },
+  { label: "Moderate Fit", value: "Moderate Fit", class: "border-warning/40 text-warning hover:bg-warning/10" },
+  { label: "Not Fit",      value: "Not Fit",      class: "border-destructive/40 text-destructive hover:bg-destructive/10" },
 ];
 
-export function ResultsTable({ candidates }: Props) {
+export function ResultsTable({ candidates, onRemove }: Props) {
   const [filter, setFilter] = useState<FilterType>("All");
   const [sort, setSort] = useState<SortType>("score-desc");
 
@@ -139,7 +141,6 @@ export function ResultsTable({ candidates }: Props) {
 
       {/* Filter + Sort bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Filter pills */}
         <div className="flex items-center gap-2 flex-wrap">
           <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           {FILTER_OPTIONS.map((opt) => (
@@ -168,7 +169,6 @@ export function ResultsTable({ candidates }: Props) {
           ))}
         </div>
 
-        {/* Sort button */}
         <button
           onClick={() => setSort(sort === "score-desc" ? "score-asc" : "score-desc")}
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-border text-muted-foreground hover:text-primary hover:border-primary transition-all duration-150"
@@ -193,14 +193,14 @@ export function ResultsTable({ candidates }: Props) {
 
           return (
             <div
-              key={candidate.name}
+              key={candidate.resume_id ?? candidate.name}
               className={`group rounded-2xl border bg-card p-5 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 animate-fade-up ${
                 isTop ? "ring-1 ring-success/20 border-success/30" : ""
               }`}
               style={{ animationDelay: `${idx * 100 + 100}ms` }}
             >
               {/* Top row */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <span
                   className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold font-mono shrink-0 ${
                     idx === 0
@@ -224,6 +224,16 @@ export function ResultsTable({ candidates }: Props) {
                   </Badge>
                 </div>
                 <ScoreRing score={candidate.match_score} rank={idx} />
+                <button
+                  onClick={() => {
+                    onRemove(candidate.resume_id);
+                    toast.info(`Removed ${candidate.name} from results`);
+                  }}
+                  className="ml-1 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-150 shrink-0"
+                  title="Remove candidate"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               {/* Strengths & Gaps */}
