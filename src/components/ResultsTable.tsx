@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 interface Candidate {
   name: string;
@@ -29,18 +32,36 @@ function ScoreBar({ score }: { score: number }) {
   );
 }
 
-function RecommendationBadge({ rec }: { rec: string }) {
+function getRecBadgeClass(rec: string) {
   const styles: Record<string, string> = {
     "Strong Fit": "bg-success/15 text-success border-success/20",
     "Moderate Fit": "bg-warning/15 text-warning border-warning/20",
     "Not Fit": "bg-destructive/15 text-destructive border-destructive/20",
   };
+  return styles[rec] || "";
+}
 
-  return (
-    <Badge variant="outline" className={`font-medium text-xs ${styles[rec] || ""}`}>
-      {rec}
-    </Badge>
+function exportCSV(candidates: Candidate[]) {
+  const header = "Rank,Name,Score,Recommendation,Strengths,Gaps";
+  const rows = candidates.map((c, i) =>
+    [
+      i + 1,
+      `"${c.name}"`,
+      c.match_score,
+      `"${c.recommendation}"`,
+      `"${c.strengths.join("; ")}"`,
+      `"${c.gaps.join("; ")}"`,
+    ].join(",")
   );
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `screening-results-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast.success("CSV downloaded");
 }
 
 export function ResultsTable({ candidates }: Props) {
@@ -48,12 +69,25 @@ export function ResultsTable({ candidates }: Props) {
 
   return (
     <div className="space-y-4 animate-fade-up">
-      <h2 className="text-xl font-bold text-foreground">
-        Screening Results
-      </h2>
-      <p className="text-sm text-muted-foreground">
-        {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} ranked by match score
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">
+            Screening Results
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} ranked by match score
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportCSV(candidates)}
+          className="gap-1.5 text-xs active:scale-[0.97] transition-transform"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export CSV
+        </Button>
+      </div>
 
       <div className="space-y-3">
         {candidates.map((candidate, idx) => (
@@ -69,7 +103,9 @@ export function ResultsTable({ candidates }: Props) {
                 </span>
                 <div>
                   <h3 className="font-semibold text-foreground">{candidate.name}</h3>
-                  <RecommendationBadge rec={candidate.recommendation} />
+                  <Badge variant="outline" className={`font-medium text-xs ${getRecBadgeClass(candidate.recommendation)}`}>
+                    {candidate.recommendation}
+                  </Badge>
                 </div>
               </div>
             </div>
