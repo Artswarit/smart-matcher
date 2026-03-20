@@ -52,6 +52,7 @@ Rank candidates by score descending.`;
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
+        temperature: 0,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
