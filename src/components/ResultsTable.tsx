@@ -1,11 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp, TrendingDown, Trophy, ArrowUpDown, Filter, X } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, Trophy, ArrowUpDown, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
 interface Candidate {
-  resume_id: string;
+  resume_id?: string;
   name: string;
   match_score: number;
   strengths: string[];
@@ -16,8 +16,6 @@ interface Candidate {
 interface Props {
   candidates: Candidate[];
 }
-
-export function ResultsTable({ candidates }: Props) {
 
 function ScoreRing({ score, rank }: { score: number; rank: number }) {
   const circumference = 2 * Math.PI * 28;
@@ -92,7 +90,7 @@ const FILTER_OPTIONS: { label: string; value: FilterType; class: string }[] = [
   { label: "Not Fit",      value: "Not Fit",      class: "border-destructive/40 text-destructive hover:bg-destructive/10" },
 ];
 
-export function ResultsTable({ candidates, onRemove }: Props) {
+export function ResultsTable({ candidates }: Props) {
   const [filter, setFilter] = useState<FilterType>("All");
   const [sort, setSort] = useState<SortType>("score-desc");
 
@@ -200,7 +198,6 @@ export function ResultsTable({ candidates, onRemove }: Props) {
               }`}
               style={{ animationDelay: `${idx * 100 + 100}ms` }}
             >
-              {/* Top row */}
               <div className="flex items-center gap-3">
                 <span
                   className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold font-mono shrink-0 ${
@@ -225,19 +222,8 @@ export function ResultsTable({ candidates, onRemove }: Props) {
                   </Badge>
                 </div>
                 <ScoreRing score={candidate.match_score} rank={idx} />
-                <button
-                  onClick={() => {
-                    onRemove(candidate.resume_id);
-                    toast.info(`Removed ${candidate.name} from results`);
-                  }}
-                  className="ml-1 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-150 shrink-0"
-                  title="Remove candidate"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
               </div>
 
-              {/* Strengths & Gaps */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5 pt-5 border-t border-border/60">
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-1.5">
