@@ -153,7 +153,15 @@ export default function Index() {
         <section className="space-y-4 sm:space-y-6 animate-fade-up">
           <div className="flex flex-col gap-4 sm:gap-6">
             <JobDescriptionInput value={jobDescription} onChange={setJobDescription} />
-            <ResumeInputs resumes={resumes} onChange={setResumes} />
+            <ResumeInputs
+  resumes={resumes}
+  onChange={(updated) => {
+    setResumes(updated);
+    if (updated.length < resumes.length) {
+      setCandidates([]);
+    }
+  }}
+/>
           </div>
 
           <div className="flex justify-center pt-2">
