@@ -39,6 +39,17 @@ export function ScreeningHistory({ onLoad }: Props) {
     setLoading(false);
   };
 
+  const clearHistory = async () => {
+    if (!confirm("Clear all screening history? This cannot be undone.")) return;
+    const { error } = await supabase
+      .from("screening_results")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+    if (!error) {
+      setEntries([]);
+    }
+  };
+
   if (loading || entries.length === 0) return null;
 
   const displayed = expanded ? entries : entries.slice(0, 3);
@@ -55,16 +66,27 @@ export function ScreeningHistory({ onLoad }: Props) {
             ({entries.length})
           </span>
         </div>
-        {entries.length > 3 && (
+        <div className="flex items-center gap-2">
+          {entries.length > 3 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+              className="text-xs text-muted-foreground"
+            >
+              {expanded ? "Show less" : `Show all ${entries.length}`}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-muted-foreground"
+            onClick={clearHistory}
+            className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
           >
-            {expanded ? "Show less" : `Show all ${entries.length}`}
+            <Trash2 className="h-3.5 w-3.5 mr-1" />
+            Clear all
           </Button>
-        )}
+        </div>
       </div>
 
       <div className="grid gap-2">
