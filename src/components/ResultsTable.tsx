@@ -15,7 +15,9 @@ interface Candidate {
 
 interface Props {
   candidates: Candidate[];
-  <ResultsTable candidates={candidates} />
+}
+
+export function ResultsTable({ candidates }: Props) {
 
 function ScoreRing({ score, rank }: { score: number; rank: number }) {
   const circumference = 2 * Math.PI * 28;
